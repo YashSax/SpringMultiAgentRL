@@ -54,6 +54,7 @@ class Environment(gym.Env):
         self.desired_trajectory = desired_trajectory
         self.curr_timestep = 0
         self.debug = debug
+        self.cumulative_reward = 0
 
         obs_low = [-float('inf')] * 4
         obs_high = [float('inf')] * 4
@@ -101,8 +102,9 @@ class Environment(gym.Env):
         a1_obs = np.array([desired_position, self.ball.position, self.agent1.position, self.agent2.position])
         a2_obs = np.array([desired_position, self.ball.position, self.agent2.position, self.agent1.position])
         reward = -1 * abs(self.ball.position - desired_position)
+        self.cumulative_reward += reward
         self.curr_timestep += 1
-        return (a1_obs, a2_obs), reward, self.curr_timestep >= len(self.desired_trajectory) - 1
+        return (a1_obs, a2_obs), self.cumulative_reward / self.curr_timestep, self.curr_timestep >= len(self.desired_trajectory) - 1
 
     def render(self):
         assert self.debug, "Cannot render if Environment was initialized with debug=False"
