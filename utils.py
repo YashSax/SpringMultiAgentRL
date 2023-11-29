@@ -1,7 +1,8 @@
-import gym
-from gym import spaces
+import gymnasium as gym
+from gymnasium.spaces.box import Box
 import numpy as np
 import time
+import pygame
 
 
 def bound(val, min_val, max_val):
@@ -96,22 +97,21 @@ class Environment(gym.Env):
         self.debug = debug
         self.cumulative_reward = 0
 
-        obs_low = [-float("inf")] * 4
-        obs_high = [float("inf")] * 4
-        self.observation_space = spaces.Box(
+        obs_low = [-float("inf")] * 2
+        obs_high = [float("inf")] * 2
+        self.observation_space = Box(
             low=np.array(obs_low), high=np.array(obs_high), dtype=np.float32
         )
 
         agent1_high, agent1_low = agent1.max_step_distance, -agent1.max_step_distance
         agent2_high, agent2_low = agent2.max_step_distance, -agent2.max_step_distance
-        action_highs = [agent1_high, agent2_high]
-        action_lows = [agent1_low, agent2_low]
-        self.action_space = spaces.Box(
+        action_highs = [agent1_high]
+        action_lows = [agent1_low]
+        self.action_space = Box(
             low=np.array(action_lows), high=np.array(action_highs), dtype=np.float32
         )
 
         if debug:
-            import pygame
             pygame.init()
             self.width = 800
             self.height = 600
@@ -123,21 +123,17 @@ class Environment(gym.Env):
         )
         return reward
 
-    def reset(self):
+    def reset(self, seed=1):
         self.curr_timestep = 0
         self.ball.reset()
         self.agent1.reset()
         self.agent2.reset()
 
         a1_obs = np.array(
-            [self.desired_trajectory[self.curr_timestep], self.ball.position]
+            [self.desired_trajectory[self.curr_timestep] - self.ball.position, self.ball.velocity]
         )
-        a2_obs = np.array(
-            [self.desired_trajectory[self.curr_timestep], self.ball.position]
-        )
-        done = self.curr_timestep >= len(self.desired_trajectory) - 1
 
-        return (a1_obs, a2_obs), self.get_reward(), done
+        return a1_obs.reshape((1, -1)), {}
 
     def __repr__(self):
         return f"Ball = {self.ball.position}, agent1 = {self.agent1.position}, agent2 = {self.agent2.position}"
@@ -159,26 +155,28 @@ class Environment(gym.Env):
         self.agent1.position = state.agent1_position
         self.agent2.position = state.agent2_position
 
-    def step(self, agent_moves):
+    def step(self, agent_move):
         # Returns (observation, reward, done)
-        assert len(agent_moves) == 2, "Number of moves != 2"
+        if type(agent_move) is np.ndarray:
+            agent_move = agent_move.item(0)
 
-        self.agent1.move(agent_moves[0])
-        self.agent2.move(agent_moves[1])
+        self.agent1.move(agent_move)
+        self.agent2.move(agent_move)
 
         total_force = self.agent1.get_force_applied() + self.agent2.get_force_applied()
         self.ball.move(total_force)
 
         desired_position = self.desired_trajectory[self.curr_timestep]
-        a1_obs = np.array([desired_position, self.ball.position])
-        a2_obs = np.array([desired_position, self.ball.position])
+        a1_obs = np.array([desired_position - self.ball.position, self.ball.velocity])
         reward = -1 * abs(self.ball.position - desired_position)
         self.cumulative_reward += reward
         self.curr_timestep += 1
         return (
-            (a1_obs, a2_obs),
-            self.cumulative_reward / self.curr_timestep,
+            a1_obs.reshape(1, -1),
+            reward,
             self.curr_timestep >= len(self.desired_trajectory) - 1,
+            False,
+            {}
         )
 
     def render(self):
