@@ -2,6 +2,7 @@ import pickle
 import neat
 from utils import Ball, Agent, Environment
 from stable_baselines3 import PPO
+import math
 
 ball = Ball(10, 0)
 agent1 = Agent(-20, ball, 1, damping=1)
@@ -26,7 +27,6 @@ ball = Ball(10, 0)
 agent1 = Agent(-20, ball, 1, damping=1)
 agent2 = Agent(5, ball, 0.5, damping=1)
 
-import math
 desired_trajectory = [-10] * 25 + [0] * 25 + [10] * 25 + [0] * 25
 test_env = Environment(ball, desired_trajectory, agent1, agent2, debug=True)
 obs, _ = test_env.reset()
