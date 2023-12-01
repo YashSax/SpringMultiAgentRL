@@ -7,7 +7,7 @@ ball = Ball(10, 0)
 agent1 = Agent(-20, ball, 1, damping=1)
 agent2 = Agent(5, ball, 1, damping=1)
 
-desired_trajectory = [-10] * 25 + [0] * 25 + [10] * 25 + [0] * 25
+desired_trajectory = [10 * math.sin(i / 20) for i in range(0, 200)]
 
 env = Environment(ball, desired_trajectory, agent1, agent2, debug=False)
 
@@ -26,7 +26,8 @@ ball = Ball(10, 0)
 agent1 = Agent(-20, ball, 1, damping=1)
 agent2 = Agent(5, ball, 0.5, damping=1)
 
-desired_trajectory = [10] * 25 + [0] * 25 + [-10] * 25 + [0] * 25
+import math
+desired_trajectory = [-10] * 25 + [0] * 25 + [10] * 25 + [0] * 25
 test_env = Environment(ball, desired_trajectory, agent1, agent2, debug=True)
 obs, _ = test_env.reset()
 done = False
