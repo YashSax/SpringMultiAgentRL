@@ -1,5 +1,4 @@
 import pickle
-import neat
 from utils import Ball, Agent, Environment
 from stable_baselines3 import PPO
 import math
@@ -36,6 +35,7 @@ while not done:
     obs, reward, done, _, _ = test_env.step(action)
     print(reward)
     test_env.render()
+test_env.upload_video()
 
 # obs, done = env.reset(), False
 # while not done:

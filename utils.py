@@ -3,7 +3,7 @@ from gymnasium.spaces.box import Box
 import numpy as np
 import time
 import pygame
-
+import vidmaker
 
 def bound(val, min_val, max_val):
     return max(min_val, min(val, max_val))
@@ -116,6 +116,7 @@ class Environment(gym.Env):
             self.width = 800
             self.height = 600
             self.screen = pygame.display.set_mode((self.width, self.height))
+            self.video = vidmaker.Video("output.mp4", late_export=True)
 
     def get_reward(self):
         reward = -1 * abs(
@@ -217,8 +218,12 @@ class Environment(gym.Env):
         pygame.draw.circle(
             self.screen, (0, 0, 0), (desired_adjusted, self.height / 2), 5
         )
+        self.video.update(pygame.surfarray.pixels3d(self.screen).swapaxes(0, 1), inverted=False)
         pygame.display.update()
 
+    def upload_video(self):
+        assert self.debug, "Debug must be True to record video"
+        self.video.export(verbose=True)
 
 class MultiAgentEnvironment(gym.Env):
     def __init__(self, ball, desired_trajectory, agent1, agent2, debug=False):
@@ -250,6 +255,7 @@ class MultiAgentEnvironment(gym.Env):
             self.width = 800
             self.height = 600
             self.screen = pygame.display.set_mode((self.width, self.height))
+            self.video = vidmaker.Video("output.mp4", late_export=True)
 
     def get_reward(self):
         reward = -1 * abs(
@@ -354,4 +360,9 @@ class MultiAgentEnvironment(gym.Env):
         pygame.draw.circle(
             self.screen, (0, 0, 0), (desired_adjusted, self.height / 2), 5
         )
+        self.video.update(pygame.surfarray.pixels3d(self.screen).swapaxes(0, 1), inverted=False)
         pygame.display.update()
+
+    def upload_video(self):
+        assert self.debug, "Debug must be True to record video"
+        self.video.export(verbose=True)

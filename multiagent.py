@@ -1,6 +1,5 @@
 import ray
 from ray import tune
-from ray.rllib.env.multi_agent_env import MultiAgentEnv
 from utils import Ball, Agent, MultiAgentEnvironment
 import math
 
